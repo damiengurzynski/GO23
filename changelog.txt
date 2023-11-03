@@ -1,0 +1,3 @@
+[x] boat linear movement and rotation
+[x] compass
+[x] earth curvature
