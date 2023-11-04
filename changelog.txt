@@ -1,3 +1,3 @@
-[x] boat linear movement and rotation
-[x] compass
-[x] earth curvature
+[x] collision detection
+[x] change view
+[x] no strafing, rotate only
