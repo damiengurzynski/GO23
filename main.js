@@ -30,7 +30,7 @@ let map=
         {
             e.forEach(f=>
             {
-                this.map[f.pos.y][f.pos.x]=f;
+                for (let i=0;i<f.cellsize;i++) this.map[f.pos.y][f.pos.x+i]=f;
             });
         });
     }
@@ -54,7 +54,7 @@ let screen=
     //objects
     map:
     {
-        size: 10,
+        size: 20,
     },
 
     //functions
@@ -93,19 +93,18 @@ let screen=
         screen.ctx.lineTo(canvas.width,canvas.height/2);
         screen.ctx.stroke();
 
+        //draw front of ship
         if (screen.view=='front')
         {
-            //draw front of ship
             screen.ctx.beginPath();
             screen.ctx.moveTo(0,canvas.height);
             screen.ctx.lineTo(canvas.width/2,canvas.height/1.3);
             screen.ctx.lineTo(canvas.width,canvas.height);
             screen.ctx.stroke();
         }
-
+        //draw back of ship
         if (screen.view=='back')
         {
-            //draw back of ship
             screen.ctx.beginPath();
             screen.ctx.moveTo(0,canvas.height);
             screen.ctx.lineTo(canvas.width/3,canvas.height/1.3);
@@ -113,10 +112,9 @@ let screen=
             screen.ctx.lineTo(canvas.width,canvas.height);
             screen.ctx.stroke();
         }
-
+        //draw side of ship
         if (screen.view=='left' || screen.view=='right')
         {
-            //draw side of ship
             screen.ctx.beginPath();
             screen.ctx.moveTo(0,canvas.height/1.3);
             screen.ctx.lineTo(canvas.width,canvas.height/1.3);
@@ -130,85 +128,337 @@ let screen=
             {
                 if (f.name!=p.name)
                 {
+                    //GLOBAL VARIABLES
+                    //distance x from player to entity
                     let dx=Math.abs(f.pos.x-p.pos.x);
+                    //distance y from player to entity
                     let dy=Math.abs(f.pos.y-p.pos.y);
+                    //distance from player to entity
                     let d=Math.abs(Math.round(Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2))));
+
+                    //screen splits
+                    let nbSplits;
+                    let splitSize;
+
+                    //size of entity
+                    let eSize={x:Math.round(f.size.x/d), y:Math.round(f.size.y/d)};
+
+                    //position of entity
+                    let ePosX=null;
+                    let ePosY=null;
+
+                    //fov limits
+                    let fovMinY=p.pos.y-dx;
+                    let fovMaxY=p.pos.y+dx;
+                    let fovMinX=p.pos.x-dy;
+                    let fovMaxX=p.pos.x+dy;
+
+                    //PLAYER FACING NORTH
+                    if (p.dir=='n')
+                    {
+                        //entity is in front of player
+                        if (screen.view=='front')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y<p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=f.pos.x-fovMinX;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is behind player and back view
+                        if (screen.view=='back')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y>p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=fovMaxX-f.pos.x;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is left of player and left view
+                        if (screen.view=='left')
+                        {
+                            nbSplits=dx*2;
+                            if (f.pos.x<p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
+                            {
+                                //position of entity
+                                ePosX=fovMaxY-f.pos.y;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+
+                        //entity is right of player and right view
+                        if (screen.view=='right')
+                        {
+                            nbSplits=dx*2;
+                            if (f.pos.x>p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
+                            {
+                                //position of entity
+                                ePosX=f.pos.y-fovMinY;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+                    }
+
+                    //PLAYER FACING SOUTH
+                    if (p.dir=='s')
+                    {
+                        //entity is in front of player
+                        if (screen.view=='front')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y>p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=fovMaxX-f.pos.x;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is behind player and back view
+                        if (screen.view=='back')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y<p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=f.pos.x-fovMinX;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is left of player and left view
+                        if (screen.view=='left')
+                        {
+                            nbSplits=dx*2;
+                            if (f.pos.x>p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
+                            {
+                                //position of entity
+                                ePosX=f.pos.y-fovMinY;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+
+                        //entity is right of player and right view
+                        if (screen.view=='right')
+                        {
+                            nbSplits=dx*2;
+                            if (f.pos.x<p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
+                            {
+                                //position of entity
+                                ePosX=fovMaxY-f.pos.y;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+                    }
                     
-                    if (((screen.view=='front' || screen.view=='back') && (p.dir=='e' || p.dir=='w')) || ((p.dir=='n' || p.dir=='s') && (screen.view=='left' || screen.view=='right')))
+                    //PLAYER FACING EAST
+                    if (p.dir=='e')
                     {
-                        let minY=p.pos.y-dx;
-                        let maxY=p.pos.y+dx;
-                        let dfov=Math.abs(f.pos.y-minY);
-                        let nsplits=dx*2;
-                        let splitsize=screen.canvas.width/nsplits;
-                        let fsize={x:Math.round(f.size.x/d), y:Math.round(f.size.y/d)};
-                        let ny;
-                        
-                        //earth curvature
-                        if (d>apex)
+                        //entity is in front of player
+                        if (screen.view=='front')
                         {
-                            fsize.y-=d-apex;
-                            ny=Math.round(screen.canvas.height/2-fsize.y);
-                        }
-                        else
-                        {
-                            ny=Math.round(screen.canvas.height/2-fsize.y)+(fsize.y/4);
-                        }
-                        
-                        if ((p.dir=='e' && screen.view=='front') || (p.dir=='n' && screen.view=='right') || (p.dir=='s' && screen.view=='left') || (p.dir=='w' && screen.view=='back'))
-                        {
-                            if (f.pos.x>p.pos.x && f.pos.y>=minY && f.pos.y<=maxY && fsize.y>0)
+                            nbSplits=dx*2;
+                            if (f.pos.x>p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
                             {
-                                screen.ctx.fillRect(dfov*splitsize-(fsize.x/2),ny,fsize.x,fsize.y);
+                                //position of entity
+                                ePosX=f.pos.y-fovMinY;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
                             }
                         }
 
-                        if ((p.dir=='w' && screen.view=='front') || (p.dir=='n' && screen.view=='left') || (p.dir=='s' && screen.view=='right') || (p.dir=='e' && screen.view=='back'))
+                        //entity is behind player and back view
+                        if (screen.view=='back')
                         {
-                            if (f.pos.x<p.pos.x && f.pos.y>=minY && f.pos.y<=maxY && fsize.y>0)
+                            nbSplits=dx*2;
+                            if (f.pos.x<p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
                             {
-                                screen.ctx.fillRect(dfov*splitsize-(fsize.x/2),ny,fsize.x,fsize.y);
+                                //position of entity is flipped
+                                ePosX=fovMaxY-f.pos.y;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+
+                        //entity is left of player and left view
+                        if (screen.view=='left')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y<p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=f.pos.x-fovMinX;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is right of player and right view
+                        if (screen.view=='right')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y>p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity is flipped
+                                ePosX=fovMaxX-f.pos.x;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
                             }
                         }
                     }
 
-                    if (((screen.view=='front' || screen.view=='back') && (p.dir=='n' || p.dir=='s')) || ((p.dir=='e' || p.dir=='w') && (screen.view=='left' || screen.view=='right')))
+                    //PLAYER FACING WEST
+                    if (p.dir=='w')
                     {
-                        let minX=p.pos.x-dy;
-                        let maxX=p.pos.x+dy;
-                        let dfov=Math.abs(f.pos.x-minX);
-                        let nsplits=dy*2;
-                        let splitsize=screen.canvas.width/nsplits;
-                        let fsize={x:Math.round(f.size.x/d), y:Math.round(f.size.y/d)};
-                        let ny;
-                        
-                        //earth curvature
-                        if (d>apex)
+                        //entity is in front of player
+                        if (screen.view=='front')
                         {
-                            fsize.y-=d-apex;
-                            ny=Math.round(screen.canvas.height/2-fsize.y);
-                        }
-                        else
-                        {
-                            ny=Math.round(screen.canvas.height/2-fsize.y)+(fsize.y/4);
-                        }
-                        
-                        if ((p.dir=='n' && screen.view=='front') || (p.dir=='e' && screen.view=='left') || (p.dir=='w' && screen.view=='right') || (p.dir=='s' && screen.view=='back'))
-                        {
-                            if (f.pos.y<p.pos.y && f.pos.x>=minX && f.pos.x<=maxX && fsize.y>0)
+                            nbSplits=dx*2;
+                            if (f.pos.x<p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
                             {
-                                screen.ctx.fillRect(dfov*splitsize-(fsize.x/2),ny,fsize.x,fsize.y);
+                                //position of entity
+                                ePosX=fovMaxY-f.pos.y;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
                             }
                         }
 
-                        if ((p.dir=='s' && screen.view=='front') || (p.dir=='e' && screen.view=='right') || (p.dir=='w' && screen.view=='left') || (p.dir=='n' && screen.view=='back'))
+                        //entity is behind player and back view
+                        if (screen.view=='back')
                         {
-                            if (f.pos.y>p.pos.y && f.pos.x>=minX && f.pos.x<=maxX && fsize.y>0)
+                            nbSplits=dx*2;
+                            if (f.pos.x<p.pos.x && f.pos.y>=fovMinY && f.pos.y<=fovMaxY)
                             {
-                                screen.ctx.fillRect(dfov*splitsize-(fsize.x/2),ny,fsize.x,fsize.y);
+                                //position of entity is flipped
+                                ePosX=f.pos.y-fovMinY;
+
+                                //entity side facing player
+                                if (f.dir=='n') {};
+                                if (f.dir=='s') {};
+                                if (f.dir=='e') eSize.x/=2;
+                                if (f.dir=='w') eSize.x/=2;
+                            }
+                        }
+
+                        //entity is left of player and left view
+                        if (screen.view=='left')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y>p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=fovMaxX-f.pos.x;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
+                            }
+                        }
+
+                        //entity is right of player and right view
+                        if (screen.view=='right')
+                        {
+                            nbSplits=dy*2;
+                            if (f.pos.y<p.pos.y && f.pos.x>=fovMinX && f.pos.x<=fovMaxX)
+                            {
+                                //position of entity
+                                ePosX=f.pos.x-fovMinX;
+
+                                //entity side facing player
+                                if (f.dir=='n') eSize.x/=2;
+                                if (f.dir=='s') eSize.x/=2;
+                                if (f.dir=='e') {};
+                                if (f.dir=='w') {};
                             }
                         }
                     }
+
+                    //earth curvature
+                    if (d>apex)
+                    {
+                        eSize.y-=d-apex;
+                        ePosY=Math.round(screen.canvas.height/2-eSize.y);
+                    }
+                    else
+                    {
+                        ePosY=Math.round(screen.canvas.height/2-eSize.y)+(eSize.y/4);
+                    }
+
+                    //draw entity
+                    if (ePosX!=null && eSize.y>0)
+                    {
+                        splitSize=screen.canvas.width/nbSplits;
+                        screen.ctx.fillRect(ePosX*splitSize-(eSize.x/2),ePosY,eSize.x,eSize.y);
+                    }
+
                 }
             });
         });
@@ -230,11 +480,13 @@ let actions=
 //CLASSES
 class Island
 {
-    constructor(name,pos)
+    constructor(name,pos,dir)
     {
         this.name=name;
         this.pos=pos;
-        this.size={x:800, y:100};
+        this.size={x:60, y:60};
+        this.cellsize=1;
+        this.dir=dir;
 
         world.islands.push(this);
     }
@@ -247,6 +499,7 @@ class Ship
         this.name=name;
         this.pos=pos;
         this.size={x:20, y:20};
+        this.cellsize=1;
         this.dir=dir;
 
         world.ships.push(this);
@@ -305,20 +558,6 @@ document.addEventListener('keydown',e=>
             if (p.dir=='w' && p.pos.x<map.size-1 && map.map[p.pos.y][p.pos.x+1]==null)
                 p.pos.x++;
         }
-
-        //ship rotation
-        if (e.key=='c')
-        {
-            if (dir>0) dir--;
-            else dir=rdir.length-1;
-            p.dir=rdir[dir];
-        }
-        if (e.key=='v')
-        {
-            if (dir<rdir.length-1) dir++;
-            else dir=0;
-            p.dir=rdir[dir];
-        }
     }
 
     //update
@@ -330,9 +569,11 @@ document.addEventListener('keydown',e=>
 screen.init();
 map.init();
 
-new Ship('Plack Bearl', {x:1,y:5}, 'n');
-new Island('Turtoga', {x:7,y:5});
-new Island('Skull', {x:0,y:2});
+new Ship('Plack Bearl', {x:5,y:5}, 'n');
+new Island('Turtoga', {x:5,y:3}, 'n');
+
+//new Ship('Bollocks', {x:3,y:0}, 's');
+//new Island('Skull', {x:2,y:2}), 'n';
 
 screen.draw();
 map.update();

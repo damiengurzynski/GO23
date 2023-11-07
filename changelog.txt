@@ -1,3 +1,1 @@
-[x] collision detection
-[x] change view
-[x] no strafing, rotate only
+[x] redo whole movement system so that flipping works
