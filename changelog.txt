@@ -1,1 +1,4 @@
-[x] redo whole movement system so that flipping works
+[x] better compass
+[x] sun course
+[x] stars
+[x] flat color style

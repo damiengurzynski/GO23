@@ -2,17 +2,22 @@ body
 {
     background-color: black;
     color: white;
+    font-family: monospace;
+    text-align: center;
 }
 
 #canvas
 {
     width: 100%;
-    border: 1px solid white;
     border-radius: 50px;
 }
 
 #compass
 {
-    font-size: 5vw;
-    text-align: center;
+    margin: 10px;
+    padding: 5px;
+    display: inline-block;
+    border: 1px solid white;
+    border-radius: 50px;
+    font-size: 15px;
 }

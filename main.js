@@ -2,6 +2,7 @@
 let player=0;
 let dir=0;
 let playerview=0;
+let time=19;
 
 //OBJECTS
 let map=
@@ -56,6 +57,28 @@ let screen=
     {
         size: 20,
     },
+    sun:
+    {
+        daycol:{r:225,g:221,b:143},
+        radius: 50,
+        x:canvas.width/2,
+        y:canvas.height/2+90,
+    },
+    stars: [],
+    sky:
+    {
+        daycol:[126,189,195],
+        nightcol:[14,17,22],
+    },
+    ocean:
+    {
+        daycol:[64,89,173],
+    },
+    boat:
+    {
+        daycol:[184,125,75],
+    },
+
 
     //functions
     init: function()
@@ -76,6 +99,20 @@ let screen=
         for (let i=0;i<screen.map.size;i++)
             for (let j=0;j<screen.map.size;j++)
             screen.map.map[i][j]=null;
+
+        //stars
+        let sky=[];
+        for (let i=0; i<=3; i++)
+        {
+            for (let j=0; j<canvas.height/10; j++)
+            {
+                let x=rand(1,canvas.width);
+                let y=rand(1,canvas.height/2);
+                sky.push([x,y]);
+            }
+            screen.stars.push(sky);
+            sky=[];
+        }
     },
 
     draw: ()=>
@@ -87,43 +124,131 @@ let screen=
         //clear canvas
         screen.ctx.clearRect(0,0,screen.canvas.width,screen.canvas.height);
 
-        //draw horizon
-        screen.ctx.beginPath();
-        screen.ctx.moveTo(0,canvas.height/2);
-        screen.ctx.lineTo(canvas.width,canvas.height/2);
-        screen.ctx.stroke();
+        //draw sky
+        screen.ctx.fillStyle='#7EBDC3';
+        screen.ctx.fillRect(0,0,canvas.width,canvas.height/2);
 
-        //draw front of ship
+        //draw sun
+        screen.ctx.fillStyle='#E1DD8F';
+        if (time>=6 && time<13 && ((p.dir=='e'&&screen.view=='front') || (p.dir=='n'&&screen.view=='right') || (p.dir=='s'&&screen.view=='left') || (p.dir=='w'&&screen.view=='back')))
+        {
+            screen.ctx.beginPath();
+            screen.ctx.arc(screen.sun.x, screen.sun.y, screen.sun.radius, 0, 2*Math.PI);
+            screen.ctx.fill();
+            screen.sun.y-=2;
+        }   
+        if (time>=13 && time<19 && (p.dir=='w' || (p.dir=='n'&&screen.view=='left') || (p.dir=='s'&&screen.view=='right') || (p.dir=='e'&&screen.view=='back')))
+        {
+            screen.ctx.beginPath();
+            screen.ctx.arc(screen.sun.x, screen.sun.y, screen.sun.radius, 0, 2*Math.PI);
+            screen.ctx.fill();
+            screen.sun.y+=2;
+        }
+
+        //draw ocean
+        screen.ctx.fillStyle='#4059AD';
+        screen.ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+
+        //draw stars
+        if ((time>=19 && time <=25) || (time>=0 && time<6))
+        {
+                //draw sky
+                if (time>=19 && time<20)
+                {
+                    screen.sky.daycol[0]-=5;
+                    screen.sky.daycol[1]-=8;
+                    screen.sky.daycol[2]-=8;
+                    screen.ctx.fillStyle=`rgba(${screen.sky.daycol[0]},${screen.sky.daycol[1]},${screen.sky.daycol[2]},1)`;
+                }
+                else
+                {
+                    screen.ctx.fillStyle=`rgba(${screen.sky.nightcol[0]},${screen.sky.nightcol[1]},${screen.sky.nightcol[2]},1)`
+                }
+                screen.ctx.fillRect(0,0,canvas.width,canvas.height/2);
+
+                //draw ocean
+                screen.ctx.fillStyle='#101419';
+                screen.ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2);
+
+                //slow shine
+                if (time>=19 && time<20)
+                {
+                    let o=-(19-time);
+                    screen.ctx.fillStyle=`rgba(255,255,255,${o})`;
+                }
+                //slow dim
+                else if (time>=5 && time<=6)
+                {
+                    let o=6-time;
+                    screen.ctx.fillStyle=`rgba(255,255,255,${o})`;
+                }
+                else screen.ctx.fillStyle='white';
+
+                if (p.dir=='n' || (p.dir=='w'&&screen.view=='right') || (p.dir=='e'&&screen.view=='left') || (p.dir=='s'&&screen.view=='back'))
+                {
+                    screen.stars[0].forEach(e=>
+                    {
+                        screen.ctx.fillRect(e[0],e[1],1,1);
+                    });
+                }
+
+                if (p.dir=='s' || (p.dir=='w'&&screen.view=='left') || (p.dir=='e'&&screen.view=='right') || (p.dir=='s'&&screen.view=='back'))
+                {
+                    screen.stars[1].forEach(e=>
+                    {
+                        screen.ctx.fillRect(e[0],e[1],1,1);
+                    });
+                }
+
+                if (p.dir=='e' || (p.dir=='n'&&screen.view=='right') || (p.dir=='s'&&screen.view=='left') || (p.dir=='w'&&screen.view=='back'))
+                {
+                    screen.stars[2].forEach(e=>
+                    {
+                        screen.ctx.fillRect(e[0],e[1],1,1);
+                    });
+                }
+                
+                if (p.dir=='w' || (p.dir=='n'&&screen.view=='left') || (p.dir=='s'&&screen.view=='right') || (p.dir=='e'&&screen.view=='back'))
+                {
+                    screen.stars[3].forEach(e=>
+                    {
+                        screen.ctx.fillRect(e[0],e[1],1,1);
+                    });
+                }
+            }
+
+        //draw ship
+        if ((time>=19 && time <=25) || (time>=0 && time<6)) screen.ctx.fillStyle='#0E1116';
+        else screen.ctx.fillStyle='#B87D4B';
+        //front
         if (screen.view=='front')
         {
             screen.ctx.beginPath();
-            screen.ctx.moveTo(0,canvas.height);
-            screen.ctx.lineTo(canvas.width/2,canvas.height/1.3);
-            screen.ctx.lineTo(canvas.width,canvas.height);
-            screen.ctx.stroke();
+            screen.ctx.moveTo(canvas.width/3,canvas.height);
+            screen.ctx.lineTo(canvas.width/2,canvas.height/1.2);
+            screen.ctx.lineTo(canvas.width-canvas.width/3,canvas.height);
+            screen.ctx.fill();
         }
-        //draw back of ship
+        //back
         if (screen.view=='back')
         {
             screen.ctx.beginPath();
-            screen.ctx.moveTo(0,canvas.height);
-            screen.ctx.lineTo(canvas.width/3,canvas.height/1.3);
-            screen.ctx.lineTo(canvas.width/1.5,canvas.height/1.3);
-            screen.ctx.lineTo(canvas.width,canvas.height);
-            screen.ctx.stroke();
+            screen.ctx.moveTo(canvas.width/4,canvas.height);
+            screen.ctx.lineTo(canvas.width/3,canvas.height/1.2);
+            screen.ctx.lineTo(canvas.width/1.5,canvas.height/1.2);
+            screen.ctx.lineTo(canvas.width-canvas.width/4,canvas.height);
+            screen.ctx.fill();
         }
-        //draw side of ship
+        //sides
         if (screen.view=='left' || screen.view=='right')
         {
-            screen.ctx.beginPath();
-            screen.ctx.moveTo(0,canvas.height/1.3);
-            screen.ctx.lineTo(canvas.width,canvas.height/1.3);
-            screen.ctx.stroke();
+            screen.ctx.fillRect(0,canvas.height/1.2,canvas.width,canvas.height-canvas.height/1.2);
         }
 
         //draw entities
         Object.values(world).forEach(e=>
         {
+            screen.ctx.fillStyle='white';
             e.forEach(f=>
             {
                 if (f.name!=p.name)
@@ -465,16 +590,11 @@ let screen=
 
         //update compass
         let c=document.getElementById('compass');
-        if (p.dir=='n') c.innerHTML='n<br>w &#11032 e<br>s';
-        if (p.dir=='s') c.innerHTML='n<br>w &#11033 e<br>s';
-        if (p.dir=='w') c.innerHTML='n<br>w &#11031 e<br>s';
-        if (p.dir=='e') c.innerHTML='n<br>w &#11030 e<br>s';
+        if (p.dir=='n') c.innerHTML='N<br>W &#11032 E<br>S';
+        if (p.dir=='s') c.innerHTML='S<br>E &#11033 W<br>N';
+        if (p.dir=='w') c.innerHTML='W<br>S &#11031 N<br>E';
+        if (p.dir=='e') c.innerHTML='E<br>N &#11030 S<br>W';
     }
-}
-
-let actions=
-{
-
 }
 
 //CLASSES
@@ -506,6 +626,14 @@ class Ship
     } 
 }
 
+//FUNCTIONS
+function rand(min, max)
+{
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 //KEYBOARD INPUT
 document.addEventListener('keydown',e=>
 {
@@ -513,6 +641,9 @@ document.addEventListener('keydown',e=>
     let rdir=['n','e','s','w'];
     let rview=['front','right','back','left'];
     
+    if (time<24) time+=0.05;
+    else time=0;
+
     if (screen.menu='main')
     {
         //change view
